@@ -205,7 +205,7 @@ echo "  ✓ Created alias: sort-marketing"
 # Create cron job (runs every 5 minutes)
 cat > /etc/cron.d/marketing-sort << 'EOF'
 # Auto-sort Marketing files every 5 minutes
-*/5 * * * * root /usr/local/bin/sort-marketing >/dev/null 2>&1
+*/1 * * * * root /usr/local/bin/sort-marketing >/dev/null 2>&1
 EOF
 
 echo "  ✓ Cron job created (every 5 minutes)"
