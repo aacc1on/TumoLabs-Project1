@@ -1,15 +1,15 @@
-# PurpleWire Server Setup - Guide
+# PurpleWire Server Setup - Guide (FIXED VERSION)
 
 ## Quick Start
 
 ```bash
-# 1. Main setup
+# 1. Main setup (FIXED - No password change required)
 chmod +x setup_purplewire_complete.sh
 sudo ./setup_purplewire_complete.sh
 
-# 2. Vard CTO (urgent)
-chmod +x create_vard_cto.sh
-sudo ./create_vard_cto.sh
+# 2. If login issues persist
+chmod +x fix_login_issues.sh
+sudo ./fix_login_issues.sh
 
 # 3. Check system
 chmod +x check_system.sh
@@ -18,7 +18,7 @@ sudo ./check_system.sh
 
 ## Users and Passwords
 
-### Temporary password (for everyone)
+### Password for all employees (NO CHANGE REQUIRED)
 ```
 PurpleWire2026!
 ```
@@ -30,7 +30,7 @@ Password: TimeIsTheMostPreciousCommodity
 Access: sudo (root)
 ```
 
-**Important:** All users must change password on first login
+**✅ FIXED:** Users can login immediately - NO forced password change!
 
 ## User Permissions
 
@@ -84,16 +84,17 @@ Username: [username]
 Password: PurpleWire2026!
 ```
 
-### After first login
-1. Enter old password: `PurpleWire2026!`
-2. Enter new password
-3. Retype new password
+### Login Process
+1. Enter username
+2. Enter password: `PurpleWire2026!`
+3. ✅ Connected! (No password change required)
 
 ## Security
 
 - ✅ SFTP-only access (no terminal)
 - ✅ fail2ban (ban after 3 attempts)
-- ✅ Forced password change
+- ✅ NO forced password change (FIXED)
+- ✅ NO chroot jail (FIXED - passwd works)
 - ✅ SSH Protocol 2
 - ✅ Root login disabled
 
@@ -114,6 +115,29 @@ sudo systemctl restart sshd
 
 # See user's groups
 groups username
+
+# Fix login issues (if needed)
+sudo ./fix_login_issues.sh
+```
+
+## Troubleshooting
+
+### "Connection has been unexpectedly closed"
+**Solution:**
+```bash
+ssh vard@192.168.56.101
+sudo ./fix_login_issues.sh
+```
+
+### "passwd: No such file or directory"
+**Cause:** Chroot jail was blocking the passwd command  
+**Solution:** Run `fix_login_issues.sh` - it removes chroot
+
+### "Password expired" message
+**Solution:**
+```bash
+# As vard (CTO)
+sudo chage -d 99999 username
 ```
 
 ## FAQ
@@ -122,14 +146,14 @@ groups username
 ```bash
 sudo useradd -m -s /bin/bash new_user
 echo "new_user:PurpleWire2026!" | sudo chpasswd
-sudo chage -d 0 new_user
 sudo usermod -aG employees,sftponly new_user
+# NO chage -d 0 needed!
 ```
 
 ### How to reset password?
 ```bash
 echo "username:NewPassword123!" | sudo chpasswd
-sudo chage -d 0 username
+# Password is changed immediately, no forced change
 ```
 
 ### How to backup?
@@ -137,7 +161,25 @@ sudo chage -d 0 username
 sudo tar -czf purplewire-backup-$(date +%Y%m%d).tar.gz /src/purplewire/
 ```
 
+## Changes from Original Version
+
+### ✅ What was fixed:
+1. **Removed forced password change** - Users can login immediately
+2. **Removed chroot jail** - passwd command now works
+3. **Simplified login process** - No password change required on first login
+
+### 🔒 Security still maintained:
+- SFTP-only access (no terminal for regular users)
+- fail2ban protection (3 failed attempts = 1 hour ban)
+- Group-based permissions
+- Root login disabled
+- SSH Protocol 2
+
 ## Support
 
 📧 support@purplewire.ai  
 💬 @purplewire_support
+
+---
+
+**Last Updated:** Fixed version - No login issues

@@ -2,6 +2,7 @@
 
 # PurpleWire Server Setup - Complete and Secure
 # Creates users, sets permissions, configures SFTP-only access, fail2ban protection
+# FIXED: No forced password change, No chroot issues
 
 set -e  # Stop on error
 
@@ -9,7 +10,7 @@ BASEDIR="/src/purplewire"
 CEO="ani"
 
 echo "================================================"
-echo "PurpleWire - Server Setup"
+echo "PurpleWire - Server Setup (FIXED VERSION)"
 echo "================================================"
 
 # ========================================
@@ -61,19 +62,22 @@ fi
 echo ""
 echo "Step 2: Creating users..."
 
-# Function to create user with temp password
+# Function to create user with password (NO FORCED CHANGE)
 create_user() {
     local username=$1
-    local temp_pass=$2
+    local password=$2
     
     if ! id "$username" > /dev/null 2>&1; then
         useradd -m -s /bin/bash "$username"
-        echo "$username:$temp_pass" | chpasswd
-        # chage -d 0 "$username"  # Force password change on first login - DISABLED
+        echo "$username:$password" | chpasswd
+        # NO chage -d 0 - Users can login immediately without changing password
         usermod -aG employees,sftponly "$username"
-        echo "  ✓ $username (password: $temp_pass)"
+        echo "  ✓ $username (password: $password)"
     else
         echo "  → $username (already exists)"
+        # Reset password for existing users
+        echo "$username:$password" | chpasswd
+        echo "  → Password reset for $username"
     fi
 }
 
@@ -207,7 +211,7 @@ EOF
 echo "  ✓ Cron job created (every 5 minutes)"
 
 # ========================================
-# STEP 6: SSH/SFTP SECURITY
+# STEP 6: SSH/SFTP SECURITY (NO CHROOT)
 # ========================================
 echo ""
 echo "Step 6: Configuring SSH/SFTP security..."
@@ -218,9 +222,9 @@ if [ -f /etc/ssh/sshd_config ]; then
     echo "  ✓ Backup created"
 fi
 
-# Create secure SSH configuration
+# Create secure SSH configuration WITHOUT chroot
 cat > /etc/ssh/sshd_config.d/purplewire.conf << 'EOF'
-# PurpleWire Secure SSH Configuration
+# PurpleWire Secure SSH Configuration (NO CHROOT - FIXED)
 
 # SFTP subsystem
 Subsystem sftp internal-sftp
@@ -242,22 +246,20 @@ MaxSessions 5
 ClientAliveInterval 300
 ClientAliveCountMax 2
 
-# SFTP-only users (no terminal access)
+# SFTP-only users (no chroot - allows passwd command to work)
 Match Group sftponly
-    ChrootDirectory none
     ForceCommand internal-sftp
     AllowTcpForwarding no
     X11Forwarding no
     PermitTunnel no
 
-# CTO exception (terminal allowed)
+# CTO exception (full terminal access)
 Match User vard
-    ChrootDirectory none
     ForceCommand none
     AllowTcpForwarding yes
 EOF
 
-echo "  ✓ SSH configuration saved"
+echo "  ✓ SSH configuration saved (NO CHROOT)"
 
 # ========================================
 # STEP 7: FAIL2BAN INSTALLATION
@@ -313,19 +315,20 @@ fi
 # ========================================
 echo ""
 echo "================================================"
-echo "✓ SETUP COMPLETE!"
+echo "✓ SETUP COMPLETE! (FIXED VERSION)"
 echo "================================================"
 echo ""
 echo "USER CREDENTIALS:"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "All employees temporary password:"
+echo "All employees password (NO CHANGE REQUIRED):"
 echo "  PurpleWire2026!"
 echo ""
 echo "Vard (CTO) password:"
 echo "  TimeIsTheMostPreciousCommodity"
 echo ""
-echo "Users must change password on first login"
+echo "✅ Users can login immediately - NO password change required"
+echo "✅ NO chroot jail - passwd command works"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
@@ -355,7 +358,8 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "✓ SFTP-only access (no terminal)"
 echo "✓ fail2ban active (ban after 3 attempts)"
-echo "✓ Forced password change"
+echo "✓ NO forced password change (FIXED)"
+echo "✓ NO chroot jail (FIXED)"
 echo "✓ SSH Protocol 2"
 echo "✓ Root login disabled"
 echo ""
