@@ -69,7 +69,7 @@ create_user() {
     if ! id "$username" > /dev/null 2>&1; then
         useradd -m -s /bin/bash "$username"
         echo "$username:$temp_pass" | chpasswd
-        chage -d 0 "$username"  # Force password change on first login
+        # chage -d 0 "$username"  # Force password change on first login - DISABLED
         usermod -aG employees,sftponly "$username"
         echo "  ✓ $username (password: $temp_pass)"
     else
@@ -244,7 +244,7 @@ ClientAliveCountMax 2
 
 # SFTP-only users (no terminal access)
 Match Group sftponly
-    ChrootDirectory /src/purplewire
+    ChrootDirectory none
     ForceCommand internal-sftp
     AllowTcpForwarding no
     X11Forwarding no
