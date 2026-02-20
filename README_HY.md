@@ -7,11 +7,7 @@
 chmod +x setup_purplewire_complete.sh
 sudo ./setup_purplewire_complete.sh
 
-# 2. Եթե մուտքի խնդիրներ կան
-chmod +x fix_login_issues.sh
-sudo ./fix_login_issues.sh
-
-# 3. Ստուգել համակարգը
+# 2. Ստուգել համակարգը
 chmod +x check_system.sh
 sudo ./check_system.sh
 ```
@@ -116,8 +112,8 @@ sudo systemctl restart sshd
 # Տեսնել մեկի խմբերը
 groups username
 
-# Շտկել մուտքի խնդիրները (եթե պետք է)
-sudo ./fix_login_issues.sh
+# Կրկին գործարկել ամբողջական setup-ը (շտկումները ներառված են)
+sudo ./setup_purplewire_complete.sh
 ```
 
 ## Խնդիրների Լուծում
@@ -126,12 +122,12 @@ sudo ./fix_login_issues.sh
 **Լուծում:**
 ```bash
 ssh vard@192.168.56.101
-sudo ./fix_login_issues.sh
+sudo ./setup_purplewire_complete.sh
 ```
 
 ### "passwd: No such file or directory"
 **Պատճառ:** Chroot jail-ը արգելափակում էր passwd հրամանը  
-**Լուծում:** Գործարկիր `fix_login_issues.sh` - այն հեռացնում է chroot-ը
+**Լուծում:** Կրկին գործարկիր `setup_purplewire_complete.sh` (այն արդեն հեռացնում է legacy chroot կարգավորումները)
 
 ### "Password expired" հաղորդագրություն
 **Լուծում:**

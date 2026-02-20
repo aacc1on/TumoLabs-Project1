@@ -7,11 +7,7 @@
 chmod +x setup_purplewire_complete.sh
 sudo ./setup_purplewire_complete.sh
 
-# 2. If login issues persist
-chmod +x fix_login_issues.sh
-sudo ./fix_login_issues.sh
-
-# 3. Check system
+# 2. Check system
 chmod +x check_system.sh
 sudo ./check_system.sh
 ```
@@ -116,8 +112,8 @@ sudo systemctl restart sshd
 # See user's groups
 groups username
 
-# Fix login issues (if needed)
-sudo ./fix_login_issues.sh
+# Re-run full setup (already includes fixes)
+sudo ./setup_purplewire_complete.sh
 ```
 
 ## Troubleshooting
@@ -126,12 +122,12 @@ sudo ./fix_login_issues.sh
 **Solution:**
 ```bash
 ssh vard@192.168.56.101
-sudo ./fix_login_issues.sh
+sudo ./setup_purplewire_complete.sh
 ```
 
 ### "passwd: No such file or directory"
 **Cause:** Chroot jail was blocking the passwd command  
-**Solution:** Run `fix_login_issues.sh` - it removes chroot
+**Solution:** Re-run `setup_purplewire_complete.sh` (it already removes legacy chroot settings)
 
 ### "Password expired" message
 **Solution:**
