@@ -8,6 +8,13 @@ set -e  # Stop on error
 
 BASEDIR="/src/purplewire"
 CEO="ani"
+STANDARD_USERS=("ani" "ruzan" "tatevik" "yelena" "narine" "hovhannes")
+
+ensure_password_policy() {
+    local username=$1
+    # Disable forced password change and make password non-expiring for operational stability
+    chage -d 99999 -M 99999 "$username"
+}
 
 echo "================================================"
 echo "PurpleWire - Server Setup (FIXED VERSION)"
@@ -70,13 +77,14 @@ create_user() {
     if ! id "$username" > /dev/null 2>&1; then
         useradd -m -s /bin/bash "$username"
         echo "$username:$password" | chpasswd
-        # NO chage -d 0 - Users can login immediately without changing password
+        ensure_password_policy "$username"
         usermod -aG employees,sftponly "$username"
         echo "  ✓ $username (password: $password)"
     else
         echo "  → $username (already exists)"
         # Reset password for existing users
         echo "$username:$password" | chpasswd
+        ensure_password_policy "$username"
         echo "  → Password reset for $username"
     fi
 }
@@ -102,6 +110,7 @@ usermod -aG finance,sales,management hovhannes
 
 create_user "vard" "TimeIsTheMostPreciousCommodity"
 usermod -aG sudo vard  # Root access for CTO
+ensure_password_policy "vard"
 echo "  ⚠ vard has sudo privileges"
 
 # ========================================
@@ -261,6 +270,11 @@ EOF
 
 echo "  ✓ SSH configuration saved (NO CHROOT)"
 
+# Remove any legacy chroot settings from the main sshd config
+if [ -f /etc/ssh/sshd_config ]; then
+    sed -i '/^\s*ChrootDirectory\s\+/d' /etc/ssh/sshd_config
+fi
+
 # ========================================
 # STEP 7: FAIL2BAN INSTALLATION
 # ========================================
@@ -364,4 +378,20 @@ echo "✓ SSH Protocol 2"
 echo "✓ Root login disabled"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "POST-SETUP VALIDATION"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+for user in "${STANDARD_USERS[@]}"; do
+    ensure_password_policy "$user"
+done
+
+if sshd -t 2>/dev/null; then
+    echo "✓ SSH configuration validation passed"
+else
+    echo "✗ SSH configuration validation failed"
+    exit 1
+fi
+
+echo "✓ Single-script setup complete (no separate fix script required)"
 echo ""
